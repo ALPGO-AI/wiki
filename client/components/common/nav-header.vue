@@ -242,7 +242,7 @@
     page-delete(v-model='deletePageModal', v-if='path && path.length')
     page-convert(v-model='convertPageModal', v-if='path && path.length')
 
-    .nav-header-dev(v-if='false')
+    .nav-header-dev(v-if='isDevMode')
       v-icon mdi-alert
       div
         .overline DEVELOPMENT VERSION
