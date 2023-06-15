@@ -17,8 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       packages: write
-    environment: 
-      name: alpgo-wiki
     steps:
     - uses: actions/checkout@v3
 
