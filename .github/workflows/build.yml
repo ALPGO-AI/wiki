@@ -45,6 +45,7 @@ jobs:
     - name: Login to DockerHub
       uses: docker/login-action@v2.1.0
       with:
+        registry: alpgo-docker.pkg.coding.net
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
