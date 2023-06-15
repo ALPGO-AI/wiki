@@ -42,7 +42,7 @@ jobs:
         rm pkg-temp.json
         cat package.json
 
-    - name: Login to DockerHub
+    - name: Login to Coding DockerHub
       uses: docker/login-action@v2.1.0
       with:
         registry: alpgo-docker.pkg.coding.net
@@ -63,8 +63,8 @@ jobs:
         file: dev/build/Dockerfile
         push: true
         tags: |
-          alpgo-ai/wiki:canary
-          alpgo-ai/wiki:canary-${{ env.REL_VERSION_STRICT }}
+          alpgo-docker.pkg.coding.net/alpgo-ai/docker/wiki:canary
+          alpgo-docker.pkg.coding.net/alpgo-ai/docker/wiki:canary-${{ env.REL_VERSION_STRICT }}
           ghcr.io/alpgo-ai/wiki:canary
           ghcr.io/alpgo-ai/wiki:canary-${{ env.REL_VERSION_STRICT }}
 
