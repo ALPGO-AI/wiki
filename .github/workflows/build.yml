@@ -55,14 +55,24 @@ jobs:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
-        
+
     - name: Deploy alpgo wiki
       # You may pin to the exact commit or the version.
-      # uses: alesil/actions-curl@3bdc94d2e231b65cfafd795a820f99890b0603f6
-      uses: alesil/actions-curl@v1.2
+      # uses: fjogeleit/http-request-action@e8dd067b83c3ab0774c76bf065b1c4f11c7e45ba
+      uses: fjogeleit/http-request-action@v1.14.0
       with:
-        # Curl parameters
-        curl: ${{ secrets.DEPLOY_CURL_PARAMS }}
+        # Request URL
+        url: ${{ secrets.DEPLOY_ALPGO_WIKI_URL }}
+        # Request Method
+        method: POST
+        # Content Type
+        contentType: application/json
+        # Request Body as JSON String
+        data: ${{ secrets.DEPLOY_ALPGO_WIKI_DATA }}
+        # Auth Username
+        username: ${{ secrets.DEPLOY_ALPGO_WIKI_USERNAME }}
+        # Auth Password
+        password: ${{ secrets.DEPLOY_ALPGO_WIKI_PASSWORD }}
         
     - name: Build and push Docker images
       uses: docker/build-push-action@v4.0.0
@@ -91,11 +101,3 @@ jobs:
       with:
         name: drop
         path: wiki-js.tar.gz
-        
-    - name: Deploy alpgo wiki
-      # You may pin to the exact commit or the version.
-      # uses: alesil/actions-curl@3bdc94d2e231b65cfafd795a820f99890b0603f6
-      uses: alesil/actions-curl@v1.2
-      with:
-        # Curl parameters
-        curl: ${{ secrets.DEPLOY_CURL_PARAMS }}
