@@ -45,7 +45,7 @@
           span.white--text(v-if='$vuetify.breakpoint.lgAndUp') {{ $t('common:actions.close') }}
         v-divider.ml-3(vertical)
     v-main
-      component(:is='currentEditor', :save='save')
+      component(:is='currentEditor', :save='save', :uploadImageToCosAndGetUrl='uploadImageToCosAndGetUrl')
       editor-modal-properties(v-model='dialogProps')
       editor-modal-editorselect(v-model='dialogEditorSelector')
       editor-modal-unsaved(v-model='dialogUnsaved', @discard='exitGo')
@@ -275,6 +275,10 @@ export default {
     },
     openConflict() {
       this.$root.$emit('saveConflict')
+    },
+    async uploadImageToCosAndGetUrl() {
+      // TODO: upload base64 image content to cos and get url
+      return 'test' // TODO: use real url
     },
     async save({ rethrow = false, overwrite = false } = {}) {
       this.showProgressDialog('saving')
