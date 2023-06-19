@@ -376,6 +376,10 @@ export default {
     save: {
       type: Function,
       default: () => {}
+    },
+    uploadImageToCosAndGetUrl: {
+      type: Function,
+      default: () => {}
     }
   },
   data() {
@@ -432,22 +436,25 @@ export default {
     onCmInput: _.debounce(function (newContent) {
       this.processContent(newContent)
     }, 600),
-    onCmPaste (cm, ev) {
-      // const clipItems = (ev.clipboardData || ev.originalEvent.clipboardData).items
-      // for (let clipItem of clipItems) {
-      //   if (_.startsWith(clipItem.type, 'image/')) {
-      //     const file = clipItem.getAsFile()
-      //     const reader = new FileReader()
-      //     reader.onload = evt => {
-      //       this.$store.commit(`loadingStart`, 'editor-paste-image')
-      //       this.insertAfter({
-      //         content: `![${file.name}](${evt.target.result})`,
-      //         newLine: true
-      //       })
-      //     }
-      //     reader.readAsDataURL(file)
-      //   }
-      // }
+    async onCmPaste (cm, ev) {
+      const clipItems = (ev.clipboardData || ev.originalEvent.clipboardData).items
+      for (let clipItem of clipItems) {
+        if (_.startsWith(clipItem.type, 'image/')) {
+          const file = clipItem.getAsFile()
+          const reader = new FileReader()
+          reader.onload = async evt => {
+            this.$store.commit(`loadingStart`, 'editor-paste-image')
+            // 1. upload image base64 content (evt.target.result) to server and get url
+            // 2. insert ![${file.name}](${url}) to editor
+            const url = await this.uploadImageToCosAndGetUrl(evt.target.result)
+            this.insertAfter({
+              content: `![${file.name}](${url})`,
+              newLine: true
+            })
+          }
+          reader.readAsDataURL(file)
+        }
+      }
     },
     processContent (newContent) {
       linesMap = []
