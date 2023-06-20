@@ -15,6 +15,13 @@ ssl:
   provider: letsencrypt
   domain: $(LETSENCRYPT_DOMAIN)
   subscriberEmail: $(LETSENCRYPT_EMAIL)
+cos:
+  bucket: '$(COS_API_BUCKET_NAME)'
+  appId: '$(COS_API_APP_ID)'
+  region: '$(COS_API_REGION)'
+  allowPrefix: '$(COS_API_ALLOW_PREFIX)'
+  secretId: '$(COS_API_SECRET_ID)'
+  secretKey: '$(COS_API_SECRET_KEY)'
 logLevel: $(LOG_LEVEL:info)
 logFormat: $(LOG_FORMAT:default)
 ha: $(HA_ACTIVE)

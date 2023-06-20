@@ -446,7 +446,10 @@ export default {
             this.$store.commit(`loadingStart`, 'editor-paste-image')
             // 1. upload image base64 content (evt.target.result) to server and get url
             // 2. insert ![${file.name}](${url}) to editor
-            const url = await this.uploadImageToCosAndGetUrl(evt.target.result)
+            const url = await this.uploadImageToCosAndGetUrl({
+              fileName: file.name,
+              content: evt.target.result
+            })
             this.insertAfter({
               content: `![${file.name}](${url})`,
               newLine: true
