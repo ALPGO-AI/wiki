@@ -10,6 +10,64 @@ const qs = require('querystring')
 
 const tmplCreateRegex = /^[0-9]+(,[0-9]+)?$/
 
+const STS = require('qcloud-cos-sts')
+/**
+ * tencent cos temp access key
+ */
+const COS_BUCKET_CONFIG = {
+  bucket: WIKI.config.cos.bucket, // 存储桶的名称
+  appId: WIKI.config.cos.appId, // APPID 必填参数
+  region: WIKI.config.cos.region, // 存储桶所在的地域
+  allowPrefix: WIKI.config.cos.allowPrefix, // 特定前缀，在这里可以为空
+};
+
+const COS_CONFIG = {
+  secretId: WIKI.config.cos.secretId, // 替换为腾讯云账户的 secretId
+  secretKey: WIKI.config.cos.secretKey, // 替换为腾讯云账户的 secretKey
+  durationSeconds: 1800, // 临时密钥有效期
+  policy: {
+    'version': '2.0',
+    'statement': [{
+      'action': [
+        // 简单上传
+        'name/cos:PutObject',
+        'name/cos:PostObject',
+        // 分片上传
+        'name/cos:InitiateMultipartUpload',
+        'name/cos:ListMultipartUploads',
+        'name/cos:ListParts',
+        'name/cos:UploadPart',
+        'name/cos:CompleteMultipartUpload'
+      ],
+      'effect': 'allow',
+      'principal': {
+        'qcs': ['*'],
+      },
+      'resource': [
+        'qcs::cos:' + COS_BUCKET_CONFIG.region + ':uid/' + COS_BUCKET_CONFIG.appId + ':' + COS_BUCKET_CONFIG.bucket + '/' + COS_BUCKET_CONFIG.allowPrefix,
+      ],
+    }],
+  },
+};
+
+router.get('/getSTSToken', (req, res, next) => {
+  const { secretId, secretKey, durationSeconds, policy } = COS_CONFIG;
+  STS.getCredential({
+    secretId: secretId,
+    secretKey: secretKey,
+    durationSeconds: durationSeconds,
+    policy: policy,
+  }, function (err, tempKeys) {
+    var result = JSON.stringify(err || tempKeys) || '';
+    res.status(200).json({
+      ...JSON.parse(result),
+      bucket: COS_BUCKET_CONFIG.bucket,
+      region: COS_BUCKET_CONFIG.region,
+      allowPrefix: COS_BUCKET_CONFIG.allowPrefix.replace('/*', ''),
+     }).end()
+  });
+})
+
 /**
  * Robots.txt
  */

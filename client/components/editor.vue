@@ -64,6 +64,9 @@ import { Base64 } from 'js-base64'
 import { StatusIndicator } from 'vue-status-indicator'
 
 import editorStore from '../store/editor'
+import axios from 'axios'
+import Cos from 'cos-js-sdk-v5'
+import { v4 as uuid } from 'uuid'
 
 /* global WIKI */
 
@@ -276,9 +279,42 @@ export default {
     openConflict() {
       this.$root.$emit('saveConflict')
     },
-    async uploadImageToCosAndGetUrl() {
-      // TODO: upload base64 image content to cos and get url
-      return 'test' // TODO: use real url
+    async uploadImageToCosAndGetUrl({ fileName, content }) {
+      const res = await axios.get('/getSTSToken')
+      const { data } = res
+      const { credentials, allowPrefix, bucket, region, expiredTime } = data
+      const { sessionToken, tmpSecretId, tmpSecretKey } = credentials
+      const filePath = `${allowPrefix}/${uuid()}_${fileName}`;
+      var dataURLtoBlob = function (dataurl) {
+        var arr = dataurl.split(',');
+        var mime = arr[0].match(/:(.*?);/)[1];
+        var bstr = atob(arr[1]);
+        var n = bstr.length;
+        var u8arr = new Uint8Array(n);
+        while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new Blob([u8arr], { type: mime });
+      };
+      // 需要转为Blob上传
+      var body = dataURLtoBlob(content);
+      const cos = new Cos({
+        getAuthorization: function(options, callback) {
+          callback({
+            TmpSecretId: tmpSecretId,
+            TmpSecretKey: tmpSecretKey,
+            XCosSecurityToken: sessionToken,
+            ExpiredTime: expiredTime
+          });
+        }
+      });
+      const { Location } = await cos.putObject({
+        Bucket: bucket,
+        Region: region,
+        Key: filePath,
+        Body: body,
+      });
+      return `https://${Location}`
     },
     async save({ rethrow = false, overwrite = false } = {}) {
       this.showProgressDialog('saving')
