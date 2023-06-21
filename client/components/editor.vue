@@ -280,6 +280,7 @@ export default {
       this.$root.$emit('saveConflict')
     },
     async uploadImageToCosAndGetUrl({ fileName, content }) {
+      this.showProgressDialog('processing upload to cos')
       const res = await axios.get('/getSTSToken')
       const { data } = res
       const { credentials, allowPrefix, bucket, region, expiredTime } = data
@@ -314,6 +315,7 @@ export default {
         Key: filePath,
         Body: body,
       });
+      this.hideProgressDialog()
       return `https://${Location}`
     },
     async save({ rethrow = false, overwrite = false } = {}) {
