@@ -9,6 +9,11 @@
       template(v-else)
         v-tooltip(bottom, color='primary')
           template(v-slot:activator='{ on }')
+            v-btn.animated.fadeIn.wait-p11s(icon, tile, v-on='on', @click='selectFile()').mx-0
+              v-icon mdi-camera
+          span {{$t('editor:markup.PhotoOCR')}}
+        v-tooltip(bottom, color='primary')
+          template(v-slot:activator='{ on }')
             v-btn.animated.fadeIn(icon, tile, v-on='on', @click='toggleMarkup({ start: `**` })').mx-0
               v-icon mdi-format-bold
           span {{$t('editor:markup.bold')}}
@@ -103,11 +108,6 @@
             v-btn.animated.fadeIn.wait-p11s(icon, tile, v-on='on', @click='ocrSelectionsUrl()').mx-0
               v-icon mdi-ocr
           span {{$t('editor:markup.OCR')}}
-        v-tooltip(bottom, color='primary')
-          template(v-slot:activator='{ on }')
-            v-btn.animated.fadeIn.wait-p11s(icon, tile, v-on='on', @click='selectFile()').mx-0
-              v-icon mdi-camera
-          span {{$t('editor:markup.PhotoOCR')}}
         template(v-if='$vuetify.breakpoint.mdAndUp')
           v-spacer
           v-tooltip(bottom, color='primary', v-if='previewShown')
