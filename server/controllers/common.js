@@ -5,12 +5,29 @@ const _ = require('lodash')
 const CleanCSS = require('clean-css')
 const moment = require('moment')
 const qs = require('querystring')
+const tencentcloud = require("tencentcloud-sdk-nodejs-ocr");
 
+const OcrClient = tencentcloud.ocr.v20181119.Client;
 /* global WIKI */
 
 const tmplCreateRegex = /^[0-9]+(,[0-9]+)?$/
 
 const STS = require('qcloud-cos-sts')
+
+const clientConfig = {
+  credential: {
+    secretId: WIKI.config.cos.secretId,
+    secretKey: WIKI.config.cos.secretKey,
+  },
+  region: "ap-shanghai",
+  profile: {
+    httpProfile: {
+      endpoint: "ocr.tencentcloudapi.com",
+    },
+  },
+};
+// 实例化要请求产品的client对象,clientProfile是可选的
+const ocrClient = new OcrClient(clientConfig);
 /**
  * tencent cos temp access key
  */
@@ -64,8 +81,24 @@ router.get('/getSTSToken', (req, res, next) => {
       bucket: COS_BUCKET_CONFIG.bucket,
       region: COS_BUCKET_CONFIG.region,
       allowPrefix: COS_BUCKET_CONFIG.allowPrefix.replace('/*', ''),
-     }).end()
+    }).end()
   });
+})
+
+router.post('/OCRImageUrl', (req, res, next) => {
+  const params = {"ImageUrl": req.body.url};
+  ocrClient.GeneralHandwritingOCR(params).then(
+    (data) => {
+      res.status(200).json({
+        ...JSON.parse(JSON.stringify(data))
+      }).end()
+    },
+    (err) => {
+      res.status(200).json({
+        ...JSON.parse(JSON.stringify(err))
+      }).end()
+    }
+  );
 })
 
 /**

@@ -1,5 +1,5 @@
 <template lang='pug'>
-  .editor-markdown
+  .editor-markdown(@dragover.prevent, @drop='handleDrop')
     v-toolbar.editor-markdown-toolbar(dense, color='primary', dark, flat, style='overflow-x: hidden;')
       template(v-if='isModalShown')
         v-spacer
@@ -98,6 +98,11 @@
             v-btn.animated.fadeIn.wait-p11s(icon, tile, v-on='on', @click='insertAfter({ content: `---`, newLine: true })').mx-0
               v-icon mdi-minus
           span {{$t('editor:markup.horizontalBar')}}
+        v-tooltip(bottom, color='primary')
+          template(v-slot:activator='{ on }')
+            v-btn.animated.fadeIn.wait-p11s(icon, tile, v-on='on', @click='ocrSelectionsUrl()').mx-0
+              v-icon mdi-ocr
+          span {{$t('editor:markup.OCR')}}
         template(v-if='$vuetify.breakpoint.mdAndUp')
           v-spacer
           v-tooltip(bottom, color='primary', v-if='previewShown')
@@ -380,7 +385,11 @@ export default {
     uploadImageToCosAndGetUrl: {
       type: Function,
       default: () => {}
-    }
+    },
+    ocrImageUrlReturnResponse: {
+      type: Function,
+      default: () => {}
+    },
   },
   data() {
     return {
@@ -436,6 +445,33 @@ export default {
     onCmInput: _.debounce(function (newContent) {
       this.processContent(newContent)
     }, 600),
+    handleDrop(event) {
+      event.preventDefault(); // 防止浏览器打开被拖放文件的默认行为
+      const files = event.dataTransfer.files;
+      // 处理拖放的文件
+      this.processFiles(files);
+    },
+    processFiles(files) {
+      // 处理文件的逻辑，例如上传到服务器、读取文件内容等
+      for (let index = 0; index < files.length; index++) {
+        const file = files[index];
+        const reader = new FileReader()
+        reader.onload = async evt => {
+          this.$store.commit(`loadingStart`, 'editor-paste-image')
+          // 1. upload image base64 content (evt.target.result) to server and get url
+          // 2. insert ![${file.name}](${url}) to editor
+          const url = await this.uploadImageToCosAndGetUrl({
+            fileName: file.name,
+            content: evt.target.result
+          })
+          this.insertAfter({
+            content: `![${file.name}](${url})`,
+            newLine: true
+          })
+        }
+        reader.readAsDataURL(file)
+      }
+    },
     async onCmPaste (cm, ev) {
       const clipItems = (ev.clipboardData || ev.originalEvent.clipboardData).items
       for (let clipItem of clipItems) {
@@ -493,6 +529,43 @@ export default {
         })
       }
       this.cm.doc.replaceSelections(this.cm.doc.getSelections().map(s => start + s + end))
+    },
+    /**
+     * ocrSelectionsUrl
+     */
+    async ocrSelectionsUrl() {
+      if (!this.cm.doc.somethingSelected()) {
+        return this.$store.commit('showNotification', {
+          message: this.$t('editor:markup.noSelectionError'),
+          style: 'warning',
+          icon: 'warning'
+        })
+      }
+      const url = this.cm.doc.getSelections()[0];
+      const isURL = (str) => {
+        const pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
+          '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
+          '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
+          '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
+          '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
+          '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
+        return pattern.test(str);
+      }
+      if (isURL(url)) {
+        const array = await this.ocrImageUrlReturnResponse({
+          url
+        })
+        this.insertAfter({
+          content: `${array.join('\n')}`,
+          newLine: true
+        })
+      } else {
+        return this.$store.commit('showNotification', {
+          message: `请选中正确的图片URL，${url} 无法识别为图像地址`,
+          style: 'warning',
+          icon: 'warning'
+        })
+      }
     },
     /**
      * Set current line as header

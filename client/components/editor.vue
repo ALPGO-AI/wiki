@@ -45,7 +45,7 @@
           span.white--text(v-if='$vuetify.breakpoint.lgAndUp') {{ $t('common:actions.close') }}
         v-divider.ml-3(vertical)
     v-main
-      component(:is='currentEditor', :save='save', :uploadImageToCosAndGetUrl='uploadImageToCosAndGetUrl')
+      component(:is='currentEditor', :save='save', :uploadImageToCosAndGetUrl='uploadImageToCosAndGetUrl', :ocrImageUrlReturnResponse='ocrImageUrlReturnResponse')
       editor-modal-properties(v-model='dialogProps')
       editor-modal-editorselect(v-model='dialogEditorSelector')
       editor-modal-unsaved(v-model='dialogUnsaved', @discard='exitGo')
@@ -278,6 +278,13 @@ export default {
     },
     openConflict() {
       this.$root.$emit('saveConflict')
+    },
+    async ocrImageUrlReturnResponse({ url }) {
+      const res = await axios.post('/OCRImageUrl', { url })
+      const { data } = res
+      const { TextDetections } = data
+      const texts = (TextDetections || []).map(item => item.DetectedText)
+      return texts
     },
     async uploadImageToCosAndGetUrl({ fileName, content }) {
       this.showProgressDialog('processing upload to cos')
