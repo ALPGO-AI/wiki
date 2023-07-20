@@ -107,7 +107,7 @@
           template(v-slot:activator='{ on }')
             v-btn.animated.fadeIn.wait-p11s(icon, tile, v-on='on', @click='selectFile()').mx-0
               v-icon mdi-camera
-          span {{$t('editor:markup.Photo')}}
+          span {{$t('editor:markup.PhotoOCR')}}
         template(v-if='$vuetify.breakpoint.mdAndUp')
           v-spacer
           v-tooltip(bottom, color='primary', v-if='previewShown')
@@ -457,7 +457,7 @@ export default {
       // 处理拖放的文件
       this.processFiles(files);
     },
-    processFiles(files) {
+    processFiles(files, autoOCR = false) {
       // 处理文件的逻辑，例如上传到服务器、读取文件内容等
       for (let index = 0; index < files.length; index++) {
         const file = files[index];
@@ -474,6 +474,15 @@ export default {
             content: `![${file.name}](${url})`,
             newLine: true
           })
+          if (autoOCR) {
+            const array = await this.ocrImageUrlReturnResponse({
+              url
+            })
+            this.insertAfter({
+              content: `${array.join('\n')}`,
+              newLine: true
+            })
+          }
         }
         reader.readAsDataURL(file)
       }
@@ -508,7 +517,7 @@ export default {
         console.log('没有选择文件');
         return;
       }
-      this.processFiles(files);
+      this.processFiles(files, true);
     },
     selectFile() {
       const input = document.getElementById('myFileInput');
