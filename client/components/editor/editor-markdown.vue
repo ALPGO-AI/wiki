@@ -103,6 +103,11 @@
             v-btn.animated.fadeIn.wait-p11s(icon, tile, v-on='on', @click='ocrSelectionsUrl()').mx-0
               v-icon mdi-ocr
           span {{$t('editor:markup.OCR')}}
+        v-tooltip(bottom, color='primary')
+          template(v-slot:activator='{ on }')
+            v-btn.animated.fadeIn.wait-p11s(icon, tile, v-on='on', @click='selectFile()').mx-0
+              v-icon mdi-camera
+          span {{$t('editor:markup.Photo')}}
         template(v-if='$vuetify.breakpoint.mdAndUp')
           v-spacer
           v-tooltip(bottom, color='primary', v-if='previewShown')
@@ -168,6 +173,7 @@
 
     markdown-help(v-if='helpShown')
     page-selector(mode='select', v-model='insertLinkDialog', :open-handler='insertLinkHandler', :path='path', :locale='locale')
+    input(type='file', id='myFileInput', v-show="false", @change="uploadFile")
 </template>
 
 <script>
@@ -494,6 +500,19 @@ export default {
           reader.readAsDataURL(file)
         }
       }
+    },
+    uploadFile() {
+      const input = document.getElementById('myFileInput');
+      const files = input.files;
+      if (input.files.length === 0) {
+        console.log('没有选择文件');
+        return;
+      }
+      this.processFiles(files);
+    },
+    selectFile() {
+      const input = document.getElementById('myFileInput');
+      input.click();
     },
     processContent (newContent) {
       linesMap = []
